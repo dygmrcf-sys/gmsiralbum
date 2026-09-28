@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f151b">
+<title>GM Sir Album</title>
+<link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0f151b;--line:#26333f;--amber:#e5a33b;--amber-dim:#8a6a35;--text:#eef2f4;--muted:#8fa0ac;}
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;background:var(--bg);overflow:hidden;}
+
+  /* ---------- the embedded app ---------- */
+  #app{
+    position:fixed;inset:0;width:100%;height:100%;border:0;background:var(--bg);
+    opacity:0;transform:scale(.995);
+    transition:opacity .8s ease, transform .8s ease;
+  }
+  #app.ready{opacity:1;transform:none;}
+
+  /* ---------- loader ---------- */
+  #loader{
+    position:fixed;inset:0;z-index:5;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;
+    background:
+      radial-gradient(60% 50% at 50% 42%, rgba(229,163,59,.09), transparent 70%),
+      var(--bg);
+    transition:opacity .7s ease, visibility .7s ease;
+  }
+  #loader.done{opacity:0;visibility:hidden;}
+
+  .title{
+    font-family:'Barlow Condensed',sans-serif;font-weight:700;
+    font-size:clamp(34px,7vw,56px);letter-spacing:.01em;color:var(--text);
+    animation:rise .9s ease both;
+  }
+
+  /* photo-stack animation: four tiles that fan out and settle */
+  .stack{position:relative;width:74px;height:74px;animation:rise .9s .1s ease both;}
+  .stack i{
+    position:absolute;inset:0;border-radius:6px;border:1px solid var(--line);
+    background:linear-gradient(135deg,#1d2a36,#141d26);
+    animation:fan 2.2s ease-in-out infinite;
+  }
+  .stack i:nth-child(1){animation-delay:0s;}
+  .stack i:nth-child(2){animation-delay:.18s;}
+  .stack i:nth-child(3){animation-delay:.36s;}
+  .stack i:nth-child(4){animation-delay:.54s;border-color:var(--amber-dim);background:linear-gradient(135deg,#2a2418,#1b1a17);}
+  @keyframes fan{
+    0%,100%{transform:rotate(0) translate(0,0);opacity:.55;}
+    45%{transform:rotate(var(--r,10deg)) translate(var(--x,10px),var(--y,-6px));opacity:1;}
+  }
+  .stack i:nth-child(1){--r:-14deg;--x:-12px;--y:-4px;}
+  .stack i:nth-child(2){--r:-5deg;--x:-4px;--y:-8px;}
+  .stack i:nth-child(3){--r:6deg;--x:5px;--y:-8px;}
+  .stack i:nth-child(4){--r:15deg;--x:13px;--y:-4px;}
+
+  /* progress line */
+  .bar{width:min(240px,60vw);height:2px;background:var(--line);border-radius:2px;overflow:hidden;animation:rise .9s .2s ease both;}
+  .bar::after{
+    content:"";display:block;height:100%;width:40%;background:var(--amber);border-radius:2px;
+    animation:slide 1.5s ease-in-out infinite;
+  }
+  @keyframes slide{0%{transform:translateX(-110%);}100%{transform:translateX(280%);}}
+
+  .hint{
+    font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);
+    min-height:18px;text-align:center;padding:0 24px;
+    animation:rise .9s .3s ease both;
+  }
+  .hint a{color:var(--amber);}
+  @keyframes rise{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+
+  @media (prefers-reduced-motion:reduce){
+    .stack i,.bar::after,.title,.stack,.bar,.hint{animation:none;}
+    #app,#loader{transition:none;}
+  }
+</style>
+</head>
+<body>
+
+  <div id="loader" role="status" aria-live="polite">
+    <div class="title">GM Sir Album</div>
+    <div class="stack" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <div class="bar" aria-hidden="true"></div>
+    <div class="hint" id="hint">Loading albums…</div>
+  </div>
+
+  <iframe
+    id="app"
+    title="GM Sir Album"
+    src="https://script.google.com/macros/s/AKfycbzFRJNeNy-leeo-uXdg2JsUc_lEsZupDZ9imqpSfYEWiorWbTGuBgJbr8wZctasOKlWaQ/exec"
+    allow="fullscreen"
+    referrerpolicy="no-referrer-when-downgrade"></iframe>
+
+  <noscript>
+    <p style="position:fixed;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;background:#0f151b;color:#eef2f4;font-family:sans-serif;">
+      <a style="color:#e5a33b" href="https://script.google.com/macros/s/AKfycbzFRJNeNy-leeo-uXdg2JsUc_lEsZupDZ9imqpSfYEWiorWbTGuBgJbr8wZctasOKlWaQ/exec">Open GM Sir Album</a>
+    </p>
+  </noscript>
+
+<script>
+  const APP_URL = document.getElementById('app').src;
+  const frame = document.getElementById('app');
+  const loader = document.getElementById('loader');
+  const hint = document.getElementById('hint');
+  const started = Date.now();
+  const MIN_SHOW = 900; // keep the loader visible briefly so the transition never flashes
+
+  frame.addEventListener('load', () => {
+    const wait = Math.max(0, MIN_SHOW - (Date.now() - started));
+    setTimeout(() => {
+      frame.classList.add('ready');
+      loader.classList.add('done');
+      setTimeout(() => loader.remove(), 900);
+    }, wait);
+  });
+
+  // The app scans Drive on the first visit, which can take a little while.
+  setTimeout(() => { if (document.body.contains(loader)) hint.textContent = 'Scanning the Drive folder — first load can take a few seconds…'; }, 6000);
+  setTimeout(() => {
+    if (document.body.contains(loader) && !loader.classList.contains('done')) {
+      hint.innerHTML = 'Taking longer than usual. <a href="' + APP_URL + '" target="_blank" rel="noopener">Open in a new tab</a>';
+    }
+  }, 20000);
+</script>
+</body>
+</html>
